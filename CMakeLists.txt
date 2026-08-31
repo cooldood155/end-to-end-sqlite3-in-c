@@ -108,3 +108,7 @@ else()
 endif()
 
 add_subdirectory(src)
+
+if(ETESCA_BUILD_APPS)
+  add_subdirectory(apps)
+endif()
