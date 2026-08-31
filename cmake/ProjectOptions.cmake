@@ -81,7 +81,7 @@ if(ETESCA_SANITIZE)
     target_link_options(etesca_options INTERFACE
       "$<${gnu_like_compiler}:${etesca_sanitize_flag}>")
 
-  elseif(compiler_is_msvc)
+  else()
     set(etesca_sanitize_flag "/fsanitize=address")
 
     target_compile_options(etesca_options INTERFACE
@@ -109,26 +109,26 @@ if(ETESCA_SANITIZE)
       "$<${gnu_like_compiler}:${etesca_sanitize_flag}>"
       "$<${gnu_like_compiler}:-fno-omit-frame-pointer>"
       "$<${gnu_like_compiler}:-g>")
-  elseif(compiler_is_msvc)
+  else()
     target_compile_options(etesca_options INTERFACE 
       "$<${msvc_compiler}:${etesca_sanitize_flag}>"
       "$<${msvc_compiler}:/Zi>"
       "$<${msvc_compiler}:/Oy->")
-    endif()
+  endif()
 
-    if(compiler_is_msvc)
-      # Force ALL optimized configurations to keep frame pointers
-      foreach(config RELEASE RELWITHDEBINFO MINSIZEREL)
-        string(REPLACE "/O2" "/O2 /Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
-        string(REPLACE "/O1" "/O1 /Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
-        string(REPLACE "/Oy- /Oy-" "/Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
-      endforeach()
-    endif()
+  if(compiler_is_msvc)
+    # Force ALL optimized configurations to keep frame pointers
+    foreach(config RELEASE RELWITHDEBINFO MINSIZEREL)
+      string(REPLACE "/O2" "/O2 /Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
+      string(REPLACE "/O1" "/O1 /Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
+      string(REPLACE "/Oy- /Oy-" "/Oy-" CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
+    endforeach()
+  endif()
 
-    target_link_options(etesca_options INTERFACE
-      "$<${compiler}:${etesca_sanitize_flag}>")
-    
-      message(STATUS "etesca: sanitizers ${ETESCA_SANITIZE}")
+  target_link_options(etesca_options INTERFACE
+    "$<${compiler}:${etesca_sanitize_flag}>")
+  
+    message(STATUS "etesca: sanitizers ${ETESCA_SANITIZE}")
 endif()
 
 if(ETESCA_HARDENING)
@@ -158,7 +158,7 @@ if(ETESCA_HARDENING)
     # Program's stack memory segment is non-executable
     etesca_try_link_option(LINKER:-z,noexecstack)
 
-  elseif(compiler_is_msvc)
+  else()
     # Stack-based buffer overflow ("stack smashing") attacks
     etesca_try_compile_option(/GS)
 
@@ -199,7 +199,7 @@ if(ETESCA_COVERAGE)
     target_link_options(etesca_options INTERFACE 
       "$<${gnu_like_compiler}:--coverage>")
 
-  elseif(compiler_is_msvc)
+  else()
     target_compile_options(etesca_options INTERFACE 
       "$<${msvc_compiler}:/Zi>"
       "$<${msvc_compiler}:/Od>")
@@ -219,7 +219,7 @@ if(ETESCA_REPRODUCIBLE)
     # the compiled object files and final binaries
     etesca_try_compile_option(-fno-ident)
 
-  elseif(compiler_is_msvc)
+  else()
     # Remap paths (equivalent to -ffile-prefix-map)
     etesca_try_compile_option("/pathmap:${PROJECT_SOURCE_DIR}=.")
 
@@ -267,7 +267,7 @@ if(ETESCA_REDUCE_SIZE)
     # found instances of such into one massive block
     etesca_try_compile_option(-fdata-sections)
 
-  elseif(compiler_is_msvc)
+  else()
     # Enables function-level linking (equivalent to --ffunction-sections /
     # -fdata-sections)
     etesca_try_compile_option(/Gy)

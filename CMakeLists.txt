@@ -12,6 +12,11 @@ if (PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
     "In-source builds are not supported, please use a build directory")
 endif()
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang|IntelLLVM|MSVC)$")
+  message(FATAL_ERROR
+    "This project requires a mianstream compiler; found: ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(GNUInstallDirs)
