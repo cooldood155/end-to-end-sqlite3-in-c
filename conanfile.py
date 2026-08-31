@@ -46,6 +46,7 @@ class EtescaRecipe(ConanFile):
       raise LookupError("Could not find top-level CMake project version.")
 
   def package_info(self):
+    self.cpp_info.libs = ["etesca"]
     self.cpp_info.set_property("cmake_file_name", "etesca")
     self.cpp_info.set_property("cmake_target_name", "etesca::etesca")
 
@@ -56,7 +57,17 @@ class EtescaRecipe(ConanFile):
     tc = CMakeToolchain(self)
     tc.user_presets_path = False
 
+    build_tests = not self.conf.get(
+      "tools.build:skip_tests", default=False, check_type=bool)
+
+    tc.variables["ETESCA_BUILD_TESTS"] = build_tests
+    tc.cache_variables["ETESCA_BUILD_TESTS"] = build_tests
+
     tc.generate()
+
+    save(self, path.join(self.generators_folder, "etesa_intent.cmake"),
+      "set(ETESCA_TOOLCHAIN_SHARED {})\n".format(
+        "ON" if self.options.get_safe("shared") else "OFF"))
 
   def build_requirements(self):
     self.test_requires("catch2/[>=3.7.1]")

@@ -133,6 +133,10 @@ ConanPresets.json
 core
 core.*
 
+# Negate core.* including C/C++
+!core.[ch]*
+
+
 # GCC/Clang Code Coverage & Profiling
 *.gcno
 *.gcda
