@@ -1,6 +1,12 @@
 include(GenerateExportHeader)
 
 function(etesca_configure_library target)
+  if("${target}" STREQUAL "NONE")
+    message(STATUS
+      "etesca: no library is being configured/built for ${target}")
+    return()
+  endif()
+
   target_sources(${target}
     PUBLIC
       FILE_SET    etesca_headers
@@ -53,40 +59,47 @@ if(ETESCA_LIBRARY_TYPE STREQUAL "STATIC+SHARED")
   list(APPEND ETESCA_LIBRARY_TARGETS etesca_static etesca_shared)
   set(ETESCA_EXPORT_HEADER_TARGET etesca_shared)
 
-elseif(ETESCA_LIBRARY_TYPE STREQUAL "SHARED")
+elseif(ETESCA_LIBRARY_TYPE STREQUAL "SHARED"
+       OR ETESCA_LIBRARY_TYPE_FOLLOWS_BUILD_SHARED_LIBS)
   add_library(etesca SHARED core.cpp)
   add_library(etesca::etesca ALIAS etesca)
   list(APPEND ETESCA_LIBRARY_TARGETS etesca)
   set(ETESCA_EXPORT_HEADER_TARGET etesca)
 
-else()
+elseif(ETESCA_LIBRARY_TYPE STREQUAL "STATIC")
   add_library(etesca STATIC core.cpp)
   add_library(etesca::etesca ALIAS etesca)
   list(APPEND ETESCA_LIBRARY_TARGETS etesca)
   set(ETESCA_EXPORT_HEADER_TARGET etesca)
+else()
+  list(APPEND ETESCA_LIBRARY_TARGETS NONE)
 endif()
 
-generate_export_header(${ETESCA_EXPORT_HEADER_TARGET}
-  BASE_NAME etesca
-  EXPORT_FILE_NAME "${PROJECT_BINARY_DIR}/generated/etesca/export.hpp")
+if(NOT "${ETESCA_LIBRARY_TARGETS}" STREQUAL "NONE")
+  generate_export_header(${ETESCA_EXPORT_HEADER_TARGET}
+    BASE_NAME etesca
+    EXPORT_FILE_NAME "${PROJECT_BINARY_DIR}/generated/etesca/export.hpp")
+endif()
 
 foreach(etesca_target IN LISTS ETESCA_LIBRARY_TARGETS)
   etesca_configure_library(${etesca_target})
 endforeach()
 
-etesca_add_generated_source(
+if(NOT "${ETESCA_LIBRARY_TARGETS}" STREQUAL "NONE")
+  etesca_add_generated_source(
     SPEC    "${CMAKE_CURRENT_SOURCE_DIR}/tables.spec"
     OUTPUT  tables.cpp
     TARGETS ${ETESCA_LIBRARY_TARGETS})
 
-set(ETESCA_LIBRARY_TARGETS ${ETESCA_LIBRARY_TARGETS} PARENT_SCOPE)
+  set(ETESCA_LIBRARY_TARGETS ${ETESCA_LIBRARY_TARGETS} PARENT_SCOPE)
 
-if(ETESCA_INSTALL AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
-  install(TARGETS ${ETESCA_LIBRARY_TARGETS}
-    EXPORT  etescaTargets
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    FILE_SET etesca_headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    FILE_SET etesca_generated_headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+  if(ETESCA_INSTALL)
+    install(TARGETS ${ETESCA_LIBRARY_TARGETS}
+      EXPORT  etescaTargets
+      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      FILE_SET etesca_headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+      FILE_SET etesca_generated_headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+  endif()
 endif()

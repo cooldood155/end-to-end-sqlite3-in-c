@@ -24,7 +24,7 @@ include(GNUInstallDirs)
 option(ETESCA_BUILD_APPS   "Build etesca"                  ${PROJECT_IS_TOP_LEVEL})
 option(ETESCA_BUILD_TESTS  "Build etesca tests"            ${PROJECT_IS_TOP_LEVEL})
 option(ETESCA_INSTALL      "Generate etesca install rules" ${PROJECT_IS_TOP_LEVEL})
-option(ETESCA_WERROR       "Treat warnings as errors"         OFF)
+option(ETESCA_WERROR       "Treat warnings as errors"      OFF)
 
 set(ETESCA_LIBRARY_TYPE "" CACHE STRING
   "Library artifacts to build: STATIC, SHARED, STATIC+SHARED, NONE, or empty to follow BUILD_SHARED_LIBS")
