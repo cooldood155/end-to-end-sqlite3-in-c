@@ -21,10 +21,10 @@ option(ETESCA_BUILD_TESTS  "Build etesca tests"            ${PROJECT_IS_TOP_LEVE
 option(ETESCA_INSTALL      "Generate etesca install rules" ${PROJECT_IS_TOP_LEVEL})
 option(ETESCA_WERROR       "Treat warnings as errors"         OFF)
 
-# Static Analysis (STA)
-option(ETESCA_STA_ALL        "Toggle static analysis tools"      OFF)
-option(ETESCA_STA_CPPCHECK   "Toggle Cppcheck static analysis"   OFF)
-option(ETESCA_STA_CLANG_TIDY "Toggle Clang-Tidy static analysis" OFF)
+# Static Analysis (SA)
+option(ETESCA_SA_ALL        "Toggle static analysis tools"      OFF)
+option(ETESCA_SA_CPPCHECK   "Toggle Cppcheck static analysis"   OFF)
+option(ETESCA_SA_CLANG_TIDY "Toggle Clang-Tidy static analysis" OFF)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
