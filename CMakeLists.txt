@@ -43,3 +43,22 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 include(CompilerWarnings)
 include(ProjectOptions)
+include(Tools)
+include(HostTools)
+
+if(CMAKE_CROSSCOMPILING)
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+
+else()
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+  if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+  else()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+  endif()
+
+  add_subdirectory(tools)
+endif()
