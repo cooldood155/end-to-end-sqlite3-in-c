@@ -130,7 +130,7 @@ ConanPresets.json
 *.dSYM/
 
 # Core dumps (Linux / macOS crashes)
-core
+/core
 core.*
 
 # Negate core.* including C/C++
