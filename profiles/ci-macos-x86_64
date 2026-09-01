@@ -1,0 +1,12 @@
+[settings]
+os=Macos
+arch=x86_64
+compiler=apple-clang
+compiler.version=21
+compiler.cppstd=23
+compiler.libcxx=libc++
+build_type=Release
+
+[conf]
+tools.cmake.cmaketoolchain:generator=Ninja
+tools.build:compiler_executables={'c': 'clang', 'cpp': 'clang++'}
