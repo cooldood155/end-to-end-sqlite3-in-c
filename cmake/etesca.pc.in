@@ -1,0 +1,11 @@
+prefix=@ETESCA_PC_PREFIX@
+exec_prefix=@ETESCA_PC_EXEC_PREFIX@
+libdir=@ETESCA_PC_LIBDIR@
+includedir=@ETESCA_PC_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: @PROJECT_DESCRIPTION@
+Version: @PROJECT_VERSION@
+Requires:
+Libs: -L${libdir} -l@ETESCA_PC_LIBRARY_NAME@
+Cflags: -I${includedir}@ETESCA_PC_CFLAGS@

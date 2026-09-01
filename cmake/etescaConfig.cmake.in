@@ -1,0 +1,19 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+include("${CMAKE_CURRENT_LIST_DIR}/etescaTargets.cmake")
+
+if(NOT TARGET etesca::etesca)
+  if(TARGET etesca::shared AND TARGET etesca::static)
+    add_library(etesca::etesca INTERFACE IMPORTED)
+
+    if(BUILD_SHARED_LIBS)
+      target_link_libraries(etesca::etesca INTERFACE etesca::static)
+    else()
+      target_link_libraries(etesca::etesca INTERFACE etesca::shared)
+    endif()
+  endif()
+endif()
+
+check_required_components(etesca)
