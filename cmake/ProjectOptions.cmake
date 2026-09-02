@@ -45,18 +45,18 @@ function(etesca_try_link_option flag)
   check_linker_flag(CXX "${flag}" ${probe})
 
   if(${probe})
-    target_compile_options(etesca_options INTERFACE "$<${compiler}:${flag}>")
+    target_link_options(etesca_options INTERFACE "$<${compiler}:${flag}>")
   endif()
 endfunction()
 
 if(ETESCA_SANITIZE)
   string(REPLACE "," ";" etesca_sanitizer_list "${ETESCA_SANITIZE}")
 
-  foreach(etesca_sanitizer IN_LIST etesca_sanitizer_list)
+  foreach(etesca_sanitizer IN LISTS etesca_sanitizer_list)
     if(NOT etesca_sanitizer MATCHES "^(address|thread|leak|memory|undefined)$")
       message(FATAL_ERROR
-        "ETESCA_SANITIZE entries must be address, thread, leak, memory or
-        undefined, NOT '${etesca_sanitizer}'")
+        "ETESCA_SANITIZE entries must be address, thread, leak, memory or "
+        "undefined, NOT '${etesca_sanitizer}'")
     endif()
 
     if(compiler_is_msvc AND NOT etesca_sanitizer STREQUAL "address")
@@ -99,9 +99,15 @@ if(ETESCA_SANITIZE)
   unset(CMAKE_REQUIRED_LINK_OPTIONS)
 
   if(NOT ${etesca_sanitize_probe})
-    message(FATAL_ERROR
-      "This toolchain cannot build with ${etesca_sanitize_flag}; the runtime
-      library is probably not installed")
+    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      message(FATAL_ERROR
+        "Windows/MinGW has no sanitizer runtimes for Windows targets. "
+        "Use Clang (pacman -S mingw-w64-ucrt-x86_64-clang) or build under WSL.")
+    else()
+      message(FATAL_ERROR
+        "This toolchain cannot build with ${etesca_sanitize_flag}; the runtime "
+        "library is probably not installed")
+    endif()
   endif()
 
   if(compiler_like_gnu)

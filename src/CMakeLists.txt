@@ -5,6 +5,15 @@ function(etesca_configure_library target)
     message(STATUS
       "etesca: no library is being configured/built for ${target}")
     return()
+
+  elseif("${target}" STREQUAL "etesca_static")
+    set_target_properties(${target} PROPERTIES OUTPUT_NAME "etesca-static")
+  elseif("${target}" STREQUAL "etesca_shared")
+    set_target_properties(${target} PROPERTIES OUTPUT_NAME "etesca-shared")
+
+  else()
+    message(FATAL_ERROR
+      "Unknown core library target: '${target}'")
   endif()
 
   target_sources(${target}
@@ -33,7 +42,6 @@ function(etesca_configure_library target)
   etesca_enable_static_analysis(${target})
 
   set_target_properties(${target} PROPERTIES
-    OUTPUT_NAME etesca
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PROJECT_VERSION_MAJOR}"
     CXX_VISIBILITY_PRESET hidden

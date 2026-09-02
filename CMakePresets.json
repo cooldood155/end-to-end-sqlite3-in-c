@@ -1,0 +1,152 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 30, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" }
+      }
+    },
+    {
+      "name": "cross-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": {
+        "etescaHostTools_DIR": { "type": "PATH", "value": "${sourceDir}/build/native-release" }
+      }
+    },
+
+    {
+      "name": "host-tools",
+      "displayName": "Build host tools only, in Release mode",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/build/Release/generators/conan_toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ETESCA_BUILD_APPS": "OFF",
+        "ETESCA_BUILD_TESTS": "OFF",
+        "ETESCA_LIBRARY_TYPE": "NONE",
+        "ETESCA_SA_ALL": "OFF"
+      }
+    },
+
+    {
+      "name": "native-debug",
+      "displayName": "Native / Debug",
+      "description": "Requires: conan install . -pr:a profiles/native -s build_type=Debug --build=missing",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/build/Debug/generators/conan_toolchain.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "native-release",
+      "displayName": "Native / Release",
+      "description": "Requires: conan install . -pr:a profiles/native -s build_type=Release --build=missing",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/build/Release/generators/conan_toolchain.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "native-relwithdebinfo",
+      "displayName": "Native / RelWithDebInfo",
+      "description": "Requires: conan install . -pr:a profiles/native -s build_type=RelWithDebInfo --build=missing",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/build/RelWithDebInfo/generators/conan_toolchain.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "native-minsizerel",
+      "displayName": "Native / MinSizeRel",
+      "description": "Requires: conan install . -pr:a profiles/native -s build_type=MinSizeRel --build=missing",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/build/MinSizeRel/generators/conan_toolchain.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "MinSizeRel" }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "native-debug",          "configurePreset": "native-debug" },
+    { "name": "native-release",        "configurePreset": "native-release" },
+    { "name": "native-relwithdebinfo", "configurePreset": "native-relwithdebinfo" },
+    { "name": "native-minsizerel",     "configurePreset": "native-minsizerel" },
+
+    { "name": "host-tools", "configurePreset": "native-release",
+      "displayName": "Host tools only (etesca_codegen)",
+      "targets": ["etesca_codegen"] }
+  ],
+
+  "testPresets": [
+    {
+      "name": "native-debug",
+      "configurePreset": "native-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "native-relwithdebinfo",
+      "configurePreset": "native-relwithdebinfo",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "native-minsizerel",
+      "configurePreset": "native-minsizerel",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    }
+  ],
+
+  "workflowPresets": [
+    {
+      "name": "native-debug",
+      "steps": [
+        { "type": "configure", "name": "native-debug" },
+        { "type": "build",     "name": "native-debug" },
+        { "type": "test",      "name": "native-debug" }
+      ]
+    },
+    {
+      "name": "native-release",
+      "steps": [
+        { "type": "configure", "name": "native-release" },
+        { "type": "build",     "name": "native-release" },
+        { "type": "test",      "name": "native-release" }
+      ]
+    },
+    {
+      "name": "native-relwithdebinfo",
+      "steps": [
+        { "type": "configure", "name": "native-relwithdebinfo" },
+        { "type": "build",     "name": "native-relwithdebinfo" },
+        { "type": "test",      "name": "native-relwithdebinfo" }
+      ]
+    },
+    {
+      "name": "native-minsizerel",
+      "steps": [
+        { "type": "configure", "name": "native-minsizerel" },
+        { "type": "build",     "name": "native-minsizerel" },
+        { "type": "test",      "name": "native-minsizerel" }
+      ]
+    },
+    {
+      "name": "host-tools",
+      "steps": [
+        { "type": "configure", "name": "native-release" },
+        { "type": "build",     "name": "host-tools" }
+      ]
+    }
+  ]
+}
