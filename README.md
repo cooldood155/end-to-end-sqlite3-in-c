@@ -6,9 +6,9 @@ Working with SQLite3 via C is the **fastest** way to interact with it.
 
 ## Other Reasons This Repo Exists
 
-I am notoriously bad at writing documentation, so I will also be attempting to
-work on that skill within this repository. Keeping this all of my work
-organized, easy to ready and understand **for all**.
+I am notoriously bad at writing documentation, so I will also be
+***attempting*** to work on that skill within this repository. Keeping this
+all of my work organized, easy to ready and understand **for all**.
 
 Writing C interfaces that work seamlessly across multiple different developer
 platforms is one of my **biggest** *wants*. I am attempting to really prove I
