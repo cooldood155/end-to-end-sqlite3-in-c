@@ -9,4 +9,4 @@ build_type=Release
 
 [conf]
 tools.cmake.cmaketoolchain:generator=Ninja
-tools.build:compiler_executables="{'c': 'x86_64-w64-mingw32-gcc', 'cpp': 'x86_64-w64-mingw32-g++'}
+tools.build:compiler_executables={"c": "x86_64-w64-mingw32-gcc", "cpp": "x86_64-w64-mingw32-g++"}

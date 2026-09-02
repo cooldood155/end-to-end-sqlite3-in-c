@@ -8,7 +8,7 @@ from conan.tools.files import save, load
 
 class EtescaRecipe(ConanFile):
   name = "etesca"
-  package_type = "shared-library"
+  package_type = "library"
   settings = "os", "arch", "compiler", "build_type"
 
   description = "Install and generate the required CMake configuration files"
@@ -38,7 +38,7 @@ class EtescaRecipe(ConanFile):
     cmake_path = path.join(self.recipe_folder, "CMakeLists.txt")
     content = load(self, cmake_path)
 
-    match = search(r"projects\s*\([^)]*VERSION\s+((?:\d+\.){3})", content,
+    match = search(r"project\s*\([^)]*VERSION\s+(\d+\.\d+\.\d+)", content,
                    IGNORECASE)
     if match:
       self.version = match.group(1)
@@ -58,7 +58,7 @@ class EtescaRecipe(ConanFile):
     tc.user_presets_path = False
 
     build_tests = not self.conf.get(
-      "tools.build:skip_tests", default=False, check_type=bool)
+      "tools.build:skip_test", default=False, check_type=bool)
 
     tc.variables["ETESCA_BUILD_TESTS"] = build_tests
     tc.cache_variables["ETESCA_BUILD_TESTS"] = build_tests
