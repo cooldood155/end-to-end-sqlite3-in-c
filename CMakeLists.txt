@@ -55,7 +55,9 @@ if(NOT ETESCA_CXX_STANDARD MATCHES "^(17|20|23|26)$")
   message(FATAL_ERROR "ETESCA_CXX_STANDARD must be 17, 20, 23 or 26, not '${ETESCA_CXX_STANDARD}'")
 endif()
 
-set(CMAKE_CXX_STANDARD ${ETESCA_CXX_STANDARD})
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD ${ETESCA_CXX_STANDARD})
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -68,7 +70,9 @@ if(NOT ETESCA_C_STANDARD MATCHES "^(17|20|23|26)$")
   message(FATAL_ERROR "ETESCA_C_STANDARD must be 17, 20, 23 or 26, not '${ETESCA_C_STANDARD}'")
 endif()
 
-set(CMAKE_C_STANDARD ${ETESCA_C_STANDARD})
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_C_STANDARD ${ETESCA_C_STANDARD})
+endif()
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -121,9 +125,11 @@ else()
   add_subdirectory(tools)
 endif()
 
+include(LibraryCreator)
 add_subdirectory(src)
 
 if(ETESCA_BUILD_APPS)
+  include(ApplicationCreator)
   add_subdirectory(apps)
 endif()
 
@@ -132,6 +138,7 @@ if(ETESCA_BUILD_TESTS OR NOT ETESCA_FUZZER STREQUAL "off")
 endif()
 
 if(ETESCA_BUILD_TESTS)
+  include(TestCreator)
   add_subdirectory(tests)
 endif()
 

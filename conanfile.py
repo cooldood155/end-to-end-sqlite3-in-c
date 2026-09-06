@@ -10,6 +10,7 @@ class EtescaRecipe(ConanFile):
   name = "etesca"
   package_type = "library"
   settings = "os", "arch", "compiler", "build_type"
+  languages = ("C", "C++")
 
   description = "Install and generate the required CMake configuration files"
   license = "MIT"
@@ -18,7 +19,7 @@ class EtescaRecipe(ConanFile):
 
   options = {
     "shared": [True, False],
-    "fPIC": [True, False]
+    "fPIC": [True, False] 
   }
   default_options = {
     "shared": False,
