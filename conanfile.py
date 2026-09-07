@@ -66,7 +66,7 @@ class EtescaRecipe(ConanFile):
 
     tc.generate()
 
-    save(self, path.join(self.generators_folder, "etesa_intent.cmake"),
+    save(self, path.join(self.generators_folder, "etesca_intent.cmake"),
       "set(ETESCA_TOOLCHAIN_SHARED {})\n".format(
         "ON" if self.options.get_safe("shared") else "OFF"))
 
