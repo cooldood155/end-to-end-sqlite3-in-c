@@ -259,7 +259,8 @@
     { "name": "native-minsizerel",
       "configurePreset": "native-minsizerel" },
 
-    { "name": "host-tools", "configurePreset": "host-tools",
+    { "name": "host-tools",
+      "configurePreset": "host-tools",
       "displayName": "Host tools only (etesca_codegen)",
       "targets": ["etesca_codegen"] },
 
