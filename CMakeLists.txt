@@ -1,5 +1,36 @@
 cmake_minimum_required(VERSION 3.30)
 
+if(NOT CMAKE_BUILD_TYPE)
+  message(FATAL_ERROR "A build type must be specified, not set by default")
+endif()
+
+function(etesca_title_case string)
+  if(NOT "${string}")
+    return()
+  endif()
+
+  string(SUBSTRING "${string}" 0 1 FIRST_LETTER)
+  string(TOUPPER "${FIRST_LETTER}" FIRST_LETTER)
+
+  string(SUBSTRING "${string}" 1 -1 REMAINDER)
+  set(${string} "${FIRST_LETTER}${REMAINDER}")
+endfunction()
+
+set(ETESCA_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
+etesca_title_case(string ETESCA_BUILD_TYPE)
+
+set(CONAN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/${ETESCA_BUILD_TYPE}")
+
+if(NOT EXISTS "${CONAN_BUILD_DIR}")
+  message(FATAL_ERROR
+    "\nThe expected Conan directory does not exist: ${CONAN_BUILD_DIR}\n"
+    "CMake was configured to look for '${ETESCA_BUILD_TYPE}', but Conan "
+    "has not generated dependencies for this build type yet.\n"
+    "Please run the Conan install command for '${ETESCA_BUILD_TYPE}' or,"
+    " pass '-s build_type' as '${ETESCA_BUILD_TYPE}' or use the correct "
+    "preset (e.g., 'native-debug).")
+endif()
+
 # End-To-End SQLite3 C API (ETESCA)
 project(etesca
   VERSION 0.0.0
