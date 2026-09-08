@@ -150,9 +150,18 @@ etesca_target_configure() {
   ETESCA_RELEASE_PRESET="native-release"
   ETESCA_LIBRARY_TYPES="STATIC SHARED STATIC+SHARED"
   ETESCA_REQUIRED_TOOLS="conan cmake ctest ninja git"
-  ETESCA_STAGES=\
-    "environment clean_slate workflow_debug workflow_release library_matrix " \
-    "auto_discovery install consumer cpack host_tools reset"
+  ETESCA_STAGES="
+    environment
+    clean_slate
+    workflow_debug
+    workflow_release
+    library_matrix
+    auto_discovery
+    install
+    consumer
+    cpack
+    host_tools
+    reset"
 
   case "$name" in
     linux-x86_64|linux-armv8|macos-x86_64|macos-armv8)
@@ -169,7 +178,13 @@ etesca_target_configure() {
       ETESCA_REQUIRED_TOOLS="conan cmake ninja git"
       # Nothing built here runs on this machine, and the cross profiles set
       # tools.build:skip_test=True.
-      ETESCA_STAGES="environment clean_slate cross_build library_matrix reset"
+      ETESCA_STAGES="
+        environment
+        clean_slate
+        host_tools_for_cross
+        cross_build
+        library_matrix
+        reset"
       ;;
 
     *)

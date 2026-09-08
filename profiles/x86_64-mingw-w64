@@ -9,8 +9,8 @@
 # would not say so.
 #
 # Change build_folder_vars here and it breaks the matching preset's
-# toolchainFile, which points at
-# build/Windows-x86_64-Release/conan_toolchain.cmake.
+# toolchainFile, which points at:
+# build/windows-x86_64-release/generators/conan_toolchain.cmake.
 
 [settings]
 os=Windows
@@ -33,14 +33,5 @@ tools.cmake.cmaketoolchain:user_toolchain=["{{ os.path.join(profile_dir, "..", "
 tools.cmake.cmake_layout:build_folder_vars=["settings.os", "settings.arch", "settings.build_type"]
 
 tools.build:compiler_executables={"c": "x86_64-w64-mingw32-gcc", "cpp": "x86_64-w64-mingw32-g++"}
-
-# -mucrt selects the UCRT rather than msvcrt.dll. It is a driver flag, so it
-# has to reach the link step as well; compiling with it and linking without
-# it mixes two C runtimes in one image. Drop all four lines if your MinGW-w64
-# is already a UCRT build, where the flag is redundant.
-tools.build:cflags=["-mucrt"]
-tools.build:cxxflags=["-mucrt"]
-tools.build:exelinkflags=["-mucrt"]
-tools.build:sharedlinkflags=["-mucrt"]
 
 tools.build:skip_test=True

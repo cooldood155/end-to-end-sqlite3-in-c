@@ -217,6 +217,19 @@ etesca_workflow() {
 etesca_stage_workflow_debug()   { etesca_workflow Debug   "$ETESCA_DEBUG_PRESET"; }
 etesca_stage_workflow_release() { etesca_workflow Release "$ETESCA_RELEASE_PRESET"; }
 
+etesca_stage_host_tools_for_cross() {
+  etesca_stage "Host tools for cross"
+
+  etesca_try "conan install (Release, native)" \
+    conan install "$ETESCA_REPO_ROOT" -pr:a "${ETESCA_REPO_ROOT}/profiles/native" \
+      -s build_type=Release --build=missing || return 1
+
+  etesca_try "configure ${ETESCA_HOST_TOOLS_PRESET}" \
+    cmake --preset "$ETESCA_HOST_TOOLS_PRESET" || return 1
+  etesca_try "build ${ETESCA_HOST_TOOLS_PRESET}" \
+    cmake --build "build/${ETESCA_HOST_TOOLS_PRESET}"
+}
+
 # Cross targets have no test preset and cannot run what they produce anyways
 # all they do is configure and build rather than running a workflow and testing
 # etc.
