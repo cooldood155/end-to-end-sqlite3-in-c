@@ -4,31 +4,39 @@ if(NOT CMAKE_BUILD_TYPE)
   message(FATAL_ERROR "A build type must be specified, not set by default")
 endif()
 
-function(etesca_title_case string)
-  if(NOT "${string}")
-    return()
-  endif()
+string(STRIP "${CMAKE_BUILD_TYPE}" build_type_strip)
+string(TOLOWER "${build_type_strip}" build_type_lower)
 
-  string(SUBSTRING "${string}" 0 1 FIRST_LETTER)
-  string(TOUPPER "${FIRST_LETTER}" FIRST_LETTER)
+if("${build_type_lower}" STREQUAL "debug")
+  set(ETESCA_BUILD_TYPE "Debug")
+elseif("${build_type_lower}" STREQUAL "release")
+  set(ETESCA_BUILD_TYPE "Release")
+elseif("${build_type_lower}" STREQUAL "relwithdebinfo")
+  set(ETESCA_BUILD_TYPE "RelWithDebInfo")
+elseif("${build_type_lower}" STREQUAL "minsizerel")
+  set(ETESCA_BUILD_TYPE "MinSizeRel")
+else()
+  set(ETESCA_BUILD_TYPE "")
+endif()
 
-  string(SUBSTRING "${string}" 1 -1 REMAINDER)
-  set(${string} "${FIRST_LETTER}${REMAINDER}")
-endfunction()
+cmake_path(GET CMAKE_BINARY_DIR PARENT_PATH BUILD_DIRECTORY)
+set(CONAN_BUILD_DIR "${BUILD_DIRECTORY}/${ETESCA_BUILD_TYPE}" CACHE INTERNAL
+  "Conan's binary output path for the current configuration / build type.")
 
-set(ETESCA_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
-etesca_title_case(string ETESCA_BUILD_TYPE)
-
-set(CONAN_BUILD_DIR "${CMAKE_SOURCE_DIR}/build/${ETESCA_BUILD_TYPE}")
-
-if(NOT EXISTS "${CONAN_BUILD_DIR}")
+if("${CONAN_BUILD_DIR}" STREQUAL "${BUILD_DIRECTORY}/")
   message(FATAL_ERROR
-    "\nThe expected Conan directory does not exist: ${CONAN_BUILD_DIR}\n"
-    "CMake was configured to look for '${ETESCA_BUILD_TYPE}', but Conan "
-    "has not generated dependencies for this build type yet.\n"
-    "Please run the Conan install command for '${ETESCA_BUILD_TYPE}' or,"
+    "\nThe expected Conan directory does not exist or is the base binary "
+    "directory (meaning 'CMAKE_BUILD_TYPE' was not a valid type): "
+    "${CONAN_BUILD_DIR}"
+    "\nCMake was configured to look for '${ETESCA_BUILD_TYPE}', but Conan "
+    "has not generated dependencies for this build type yet."
+    "\nPlease run the Conan install command for '${ETESCA_BUILD_TYPE}' or,"
     " pass '-s build_type' as '${ETESCA_BUILD_TYPE}' or use the correct "
     "preset (e.g., 'native-debug).")
+else()
+  message(STATUS
+    "etesca: Conan build directory matching 'CMAKE_BUILD_TYPE="
+    "${CMAKE_BUILD_TYPE}' was found at: '${CONAN_BUILD_DIR}'")
 endif()
 
 # End-To-End SQLite3 C API (ETESCA)
