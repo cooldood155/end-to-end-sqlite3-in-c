@@ -230,9 +230,8 @@ etesca_stage_host_tools_for_cross() {
     cmake --build "build/${ETESCA_HOST_TOOLS_PRESET}"
 }
 
-# Cross targets have no test preset and cannot run what they produce anyways
-# all they do is configure and build rather than running a workflow and testing
-# etc.
+# Cross targets have no test preset and cannot run what they produce, all they
+# do is configure and build rather than running a workflow and testing etc.
 etesca_stage_cross_build() {
   etesca_stage "Cross configure and build"
 

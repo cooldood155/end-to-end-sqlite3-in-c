@@ -136,7 +136,7 @@ etesca_target_runnable_here() {
 }
 
 # Applies one target's configuration to the current shell. Callers run this in
-# a subshell so settings overwrite eachother / leak.
+# a subshell so settings DON'T overwrite eachother / leak.
 etesca_target_configure() {
   local name="$1"
 
