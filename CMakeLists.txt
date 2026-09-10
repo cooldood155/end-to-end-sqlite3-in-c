@@ -165,6 +165,7 @@ else()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
   endif()
 
+  include(ToolCreator)
   add_subdirectory(tools)
 endif()
 
