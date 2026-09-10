@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 #
-# Registry of every target the central verify script built ontop of verify_base
-# knows how to verify. A case statement and not an associative array because
-# macOS still ships bash 3.2 and that is what I went with.
+# Registry of every target the central verify script, built ontop of
+# verify_base, knows how to verify. A case statement and not an associative
+# array because macOS still ships bash 3.2 and that is what I went with.
 #
 # Record fields: name|kind|os|arch|env|probe|description
 #   os     host OS family required: linux, macos, windows, any

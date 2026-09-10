@@ -26,6 +26,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ETESCA_REPO_ROOT="$REPO_ROOT"
 export ETESCA_REPO_ROOT
 
+# 'verify_base.sh' MUST be sourced BEFORE 'targets.sh'
 # shellcheck source=helpers/verify_base.sh
 source "${SCRIPT_DIR}/helpers/verify_base.sh"
 # shellcheck source=helpers/targets.sh
@@ -137,8 +138,9 @@ while [[ $# -gt 0 ]]; do
         exit 2
       fi
       if ! etesca_target_runnable_here "$1"; then
-        printf 'warning: %s is not available here: %s\n' \
+        printf 'warning: %s is not available here: %s -- ' \
           "$1" "$(etesca_target_availability "$1" | sed -n '2p')" >&2
+        printf "only use if absolutely necessary\n" >&2
         printf 'running it anyway because it was named explicitly.\n\n' >&2
       fi
       NAMED="${NAMED}${1}"$'\n'
