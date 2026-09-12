@@ -130,6 +130,6 @@ The matching layout is:
 
 ## Notes
 
-*Note:* This module depends on `etesca_collect_component` and
+*Note:* This module depends on `etesca_collect_components` and
 `etesca_link_target` from `cmake/LibraryCreator.cmake`, so it must be included
 **after it**.

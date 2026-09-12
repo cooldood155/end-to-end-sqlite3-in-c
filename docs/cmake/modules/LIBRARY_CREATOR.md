@@ -103,7 +103,7 @@ string variant from the passed in `NAME` argument.
   against. It is empty for `HEADER_ONLY` and `INTERFACE` libraries, as an
   interface library compiles no translation unit and so has nothing to export.
 
-### `etesca_collect_component` *(internal)*
+### `etesca_collect_components` *(internal)*
 
 Recursively combs through the passed in source directory and include directory
 for all C and C++ source/header files. If no sources or headers are found, a
@@ -152,7 +152,7 @@ at the call site.
 **Example Usage:**
 
 ```cmake
-etesca_collect_component(etesca
+etesca_collect_components(etesca
   REQUIRE_SOURCES
   REQUIRE_PUBLIC_HEADERS
   SOURCE_DIR            "${CMAKE_SOURCE_DIR}/src/etesca"
@@ -201,7 +201,7 @@ and defined as a static library, and an interface target is never given a
 **Example Usage:**
 
 ```cmake
-etesca_collect_component(etesca
+etesca_collect_components(etesca
   REQUIRE_PUBLIC_HEADERS
   REQUIRE_PRIVATE_HEADERS
   SOURCE_DIR            "${CMAKE_SOURCE_DIR}/src/etesca"

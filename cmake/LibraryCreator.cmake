@@ -50,7 +50,7 @@ function(etesca_link_target target)
   endif()
 endfunction()
 
-function(etesca_collect_component NAME)
+function(etesca_collect_components NAME)
   set(options
     REQUIRE_SOURCES
     REQUIRE_PUBLIC_HEADERS
@@ -86,19 +86,19 @@ function(etesca_collect_component NAME)
 
   if(NOT sources AND ARG_REQUIRE_SOURCES)
     message(FATAL_ERROR
-      "etesca_collect_component (func): no sources found for '${NAME}' in "
+      "etesca_collect_components (func): no sources found for '${NAME}' in "
       "'${ARG_SOURCE_DIR}'. Expected files following the format "
       "'*.<cpp|cxx|cc|c>'.")
   endif()
   if(NOT public_headers AND ARG_REQUIRE_PUBLIC_HEADERS)
     message(FATAL_ERROR
-      "etesca_collect_component (func): no public headers found for '${NAME}' "
+      "etesca_collect_components (func): no public headers found for '${NAME}' "
       "in '${ARG_INCLUDE_DIR}'. Expected files following the format "
       "'*.<hpp|hxx|hh|h>'.")
   endif()
   if(NOT private_headers AND ARG_REQUIRE_PRIVATE_HEADERS)
     message(FATAL_ERROR
-      "etesca_collect_component (func): no private headers found for "
+      "etesca_collect_components (func): no private headers found for "
       "'${NAME}' in '${ARG_SOURCE_DIR}'. Expected files following the format "
       "'*.<hpp|hxx|hh|h>'.")
   endif()
@@ -332,7 +332,7 @@ function(etesca_create_library)
     set(ARG_INCLUDE_DIR "")
   endif()
 
-  etesca_collect_component(${ARG_NAME}
+  etesca_collect_components(${ARG_NAME}
     SOURCE_DIR "${ARG_SOURCE_DIR}"
     INCLUDE_DIR "${ARG_INCLUDE_DIR}"
     OUT_SOURCES globbed_sources

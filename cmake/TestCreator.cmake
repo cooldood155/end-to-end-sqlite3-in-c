@@ -29,7 +29,7 @@ function(etesca_create_test)
     set(ARG_SOURCE_DIR "${PROJECT_SOURCE_DIR}/tests/${ARG_NAME}")
   endif()
 
-  etesca_collect_component(${ARG_NAME}
+  etesca_collect_components(${ARG_NAME}
     REQUIRE_SOURCES
     SOURCE_DIR "${ARG_SOURCE_DIR}"
     OUT_SOURCES globbed_sources
