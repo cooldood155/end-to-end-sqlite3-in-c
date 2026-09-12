@@ -10,6 +10,7 @@ class EtescaRecipe(ConanFile):
   name = "etesca"
   package_type = "library"
   settings = "os", "arch", "compiler", "build_type"
+  languages = ("C", "C++")
 
   description = "Install and generate the required CMake configuration files"
   license = "MIT"
@@ -65,7 +66,7 @@ class EtescaRecipe(ConanFile):
 
     tc.generate()
 
-    save(self, path.join(self.generators_folder, "etesa_intent.cmake"),
+    save(self, path.join(self.generators_folder, "etesca_intent.cmake"),
       "set(ETESCA_TOOLCHAIN_SHARED {})\n".format(
         "ON" if self.options.get_safe("shared") else "OFF"))
 

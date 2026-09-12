@@ -1,5 +1,44 @@
 cmake_minimum_required(VERSION 3.30)
 
+if(NOT CMAKE_BUILD_TYPE)
+  message(FATAL_ERROR "A build type must be specified, not set by default")
+endif()
+
+string(STRIP "${CMAKE_BUILD_TYPE}" build_type_strip)
+string(TOLOWER "${build_type_strip}" build_type_lower)
+
+if("${build_type_lower}" STREQUAL "debug")
+  set(ETESCA_BUILD_TYPE "Debug")
+elseif("${build_type_lower}" STREQUAL "release")
+  set(ETESCA_BUILD_TYPE "Release")
+elseif("${build_type_lower}" STREQUAL "relwithdebinfo")
+  set(ETESCA_BUILD_TYPE "RelWithDebInfo")
+elseif("${build_type_lower}" STREQUAL "minsizerel")
+  set(ETESCA_BUILD_TYPE "MinSizeRel")
+else()
+  set(ETESCA_BUILD_TYPE "")
+endif()
+
+cmake_path(GET CMAKE_BINARY_DIR PARENT_PATH BUILD_DIRECTORY)
+set(CONAN_BUILD_DIR "${BUILD_DIRECTORY}/${ETESCA_BUILD_TYPE}" CACHE INTERNAL
+  "Conan's binary output path for the current configuration / build type.")
+
+if("${CONAN_BUILD_DIR}" STREQUAL "${BUILD_DIRECTORY}/")
+  message(FATAL_ERROR
+    "\nThe expected Conan directory does not exist or is the base binary "
+    "directory (meaning 'CMAKE_BUILD_TYPE' was not a valid type): "
+    "${CONAN_BUILD_DIR}"
+    "\nCMake was configured to look for '${ETESCA_BUILD_TYPE}', but Conan "
+    "has not generated dependencies for this build type yet."
+    "\nPlease run the Conan install command for '${ETESCA_BUILD_TYPE}' or,"
+    " pass '-s build_type' as '${ETESCA_BUILD_TYPE}' or use the correct "
+    "preset (e.g., 'native-debug).")
+else()
+  message(STATUS
+    "etesca: Conan build directory matching 'CMAKE_BUILD_TYPE="
+    "${CMAKE_BUILD_TYPE}' was found at: '${CONAN_BUILD_DIR}'")
+endif()
+
 # End-To-End SQLite3 C API (ETESCA)
 project(etesca
   VERSION 0.0.0
@@ -13,7 +52,7 @@ endif()
 
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang|IntelLLVM|MSVC)$")
   message(FATAL_ERROR
-    "This project requires a mianstream compiler; found: ${CMAKE_CXX_COMPILER_ID}")
+    "This project requires a mainstream compiler; found: ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -51,24 +90,32 @@ option(ETESCA_SA_CLANG_TIDY "Toggle Clang-Tidy static analysis" OFF)
 set(ETESCA_CXX_STANDARD "23" CACHE STRING "C++ standard the project requires")
 set_property(CACHE ETESCA_CXX_STANDARD PROPERTY STRINGS 17 20 23 26)
 
+if(CMAKE_CXX_STANDARD)
+  set(ETESCA_CXX_STANDARD ${CMAKE_CXX_STANDARD})
+else()
+  set(CMAKE_CXX_STANDARD ${ETESCA_CXX_STANDARD})
+endif()
+
 if(NOT ETESCA_CXX_STANDARD MATCHES "^(17|20|23|26)$")
   message(FATAL_ERROR "ETESCA_CXX_STANDARD must be 17, 20, 23 or 26, not '${ETESCA_CXX_STANDARD}'")
 endif()
-
-set(CMAKE_CXX_STANDARD ${ETESCA_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-set(ETESCA_C_STANDARD "23" CACHE STRING "C++ standard the project requires")
+set(ETESCA_C_STANDARD "23" CACHE STRING "C standard the project requires")
 set_property(CACHE ETESCA_C_STANDARD PROPERTY STRINGS 17 20 23 26)
+
+if(CMAKE_C_STANDARD)
+  set(ETESCA_C_STANDARD ${CMAKE_C_STANDARD})
+else()
+  set(CMAKE_C_STANDARD ${ETESCA_C_STANDARD})
+endif()
 
 if(NOT ETESCA_C_STANDARD MATCHES "^(17|20|23|26)$")
   message(FATAL_ERROR "ETESCA_C_STANDARD must be 17, 20, 23 or 26, not '${ETESCA_C_STANDARD}'")
 endif()
-
-set(CMAKE_C_STANDARD ${ETESCA_C_STANDARD})
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -118,12 +165,18 @@ else()
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
   endif()
 
+  include(ToolCreator)
   add_subdirectory(tools)
 endif()
 
-add_subdirectory(src)
+include(LibraryCreator)
+
+if(NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
+  add_subdirectory(src)
+endif()
 
 if(ETESCA_BUILD_APPS)
+  include(ApplicationCreator)
   add_subdirectory(apps)
 endif()
 
@@ -132,10 +185,11 @@ if(ETESCA_BUILD_TESTS OR NOT ETESCA_FUZZER STREQUAL "off")
 endif()
 
 if(ETESCA_BUILD_TESTS)
+  include(TestCreator)
   add_subdirectory(tests)
 endif()
 
-if(NOT ETESCA_FUZZER STREQUAL "off" AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
+if(ETESCA_INSTALL AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
   include(CMakePackageConfigHelpers)
 
   install(TARGETS etesca_warnings etesca_options EXPORT etescaTargets)
@@ -149,17 +203,42 @@ if(NOT ETESCA_FUZZER STREQUAL "off" AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
     "${PROJECT_BINARY_DIR}/etescaConfig.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/etesca")
 
-  configure_package_config_file(
+  write_basic_package_version_file(
     "${PROJECT_BINARY_DIR}/etescaConfigVersion.cmake"
     COMPATIBILITY SameMajorVersion)
 
   install(FILES
-    "${PROJECT_BINARY_DIR}etescaConfig.cmake"
+    "${PROJECT_BINARY_DIR}/etescaConfig.cmake"
     "${PROJECT_BINARY_DIR}/etescaConfigVersion.cmake"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/etesca")
 
-  list(GET ETESCA_LIBRARY_TARGETS 0 ETESCA_PC_TARGET)
+  get_global_libraries(ETESCA_LIBRARY_TARGETS)
+
+  set(ETESCA_PC_TARGET "")
+  foreach(etesca_library IN LISTS ETESCA_LIBRARY_TARGETS)
+    if(NOT etesca_library MATCHES "^${PROJECT_NAME}(_static|_shared)?$")
+      continue()
+    endif()
+
+    get_target_property(etesca_library_type ${etesca_library} TYPE)
+
+    if(etesca_library_type STREQUAL "SHARED_LIBRARY")
+      set(ETESCA_PC_TARGET ${etesca_library})
+      break()
+    endif()
+    if(NOT ETESCA_PC_TARGET)
+      set(ETESCA_PC_TARGET ${etesca_library})
+    endif()
+  endforeach()
+
+  if(NOT ETESCA_PC_TARGET)
+    message(FATAL_ERROR
+      "No '${PROJECT_NAME}' library target was registered; cannot generate "
+      "etesca.pc.")
+  endif()
+
   get_target_property(ETESCA_PC_LIBRARY_NAME ${ETESCA_PC_TARGET} OUTPUT_NAME)
+  get_target_property(ETESCA_PC_TARGET_TYPE ${ETESCA_PC_TARGET} TYPE)
 
   if(NOT ETESCA_PC_LIBRARY_NAME)
     set(ETESCA_PC_LIBRARY_NAME "${PROJECT_NAME}")
@@ -167,7 +246,7 @@ if(NOT ETESCA_FUZZER STREQUAL "off" AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
 
   set(ETESCA_PC_CFLAGS "")
 
-  if(ETESCA_LIBRARY_TYPE STREQUAL "STATIC")
+  if(ETESCA_PC_TARGET_TYPE STREQUAL "STATIC_LIBRARY")
     set(ETESCA_PC_CFLAGS " -DETESCA_STATIC_DEFINE")
   endif()
 
@@ -200,19 +279,18 @@ if(NOT ETESCA_FUZZER STREQUAL "off" AND NOT ETESCA_LIBRARY_TYPE STREQUAL "NONE")
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif()
 
-set(CONAN_GENERATORS_DIR "${CMAKE_BINARY_DIR}/generators")
-if(PROJECT_IS_TOP_LEVEL AND CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS "${CONAN_GENERATORS_DIR}")
-
+if(PROJECT_IS_TOP_LEVEL AND CMAKE_EXPORT_COMPILE_COMMANDS)
   file(CREATE_LINK
-    "${CONAN_GENERATORS_DIR}/compile_commands.json"
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
     "${PROJECT_SOURCE_DIR}/compile_commands.json"
     RESULT ETESCA_COMPILE_COMMANDS_LINK
     COPY_ON_ERROR SYMBOLIC)
 
-  if(NOT ETESCA_COMPILE_COMMANDS_LINK)
-    message(FATAL_ERROR
-      "Failed to create a symlink from ${CONAN_GENERATORS_DIR}/compile_commands.json "
-      "to ${PROJECT_SOURCE_DIR}/compile_commands.json, also failed directy copy")
+  if(NOT ETESCA_COMPILE_COMMANDS_LINK EQUAL 0)
+    message(WARNING
+      "Failed to link ${CMAKE_BINARY_DIR}/compile_commands.json to "
+      "${PROJECT_SOURCE_DIR}/compile_commands.json, direct copy also failed: "
+      "${ETESCA_COMPILE_COMMANDS_LINK}")
   endif()
 endif()
 
@@ -231,8 +309,7 @@ if(ETESCA_INSTALL AND PROJECT_IS_TOP_LEVEL)
     "/stage/"
     "/_install/"
     "/\\\\.conan-cache/"
-    "/\\\\.vscode/"
-    "/docs/")
+    "/\\\\.vscode/")
 
   include(CPack)
 endif()

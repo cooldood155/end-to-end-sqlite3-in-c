@@ -1,18 +1,18 @@
 # Changelog
 
-All notable changes to this project, **directly impacting users**, are recorded
-here; changes impacting a person or persons who will use the final produced
-binary or binaries in any noticable manner are logged and scoped to a release
-version.
+All notable changes to this project, **directly impacting users** or
+**downstream developers**, are recorded here; changes impacting a person or
+persons who will use the final produced binary or binaries in any noticable
+manner are logged and scoped to a release version.
 
 The format is [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) and
 the version numbers follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## What is logged
 
-A change is notable when a user of the produced binaries could otice it without
-reading the source. New or altered behaviour, new or removed build options,
-changed defaults, supported-platform changes, etc.
+A change is notable when a user of the produced binaries could notice it
+without reading the source. New or altered behaviour, new or removed build
+options, changed defaults, supported-platform changes, etc.
 
 Refactors, formatting, test-only changes, CI configuration, and internal
 build-system work does not get logged here. The git history records those
