@@ -405,14 +405,6 @@ function(etesca_create_library)
       LINK_INTERFACE ${ARG_LINK_INTERFACE})
   endforeach()
 
-  if(ARG_KIND STREQUAL "COMPILED" AND EXISTS "${ARG_SOURCE_DIR}/tables.spec")
-    etesca_add_generated_source(
-      NAME    ${ARG_NAME}
-      SPEC    "${ARG_SOURCE_DIR}/tables.spec"
-      OUTPUT  tables.cpp
-      TARGETS ${${target_list_var}})
-  endif()
-
   append_global_libraries(TARGETS ${${target_list_var}})
 
   if(ETESCA_INSTALL AND NOT ARG_NO_INSTALL)
