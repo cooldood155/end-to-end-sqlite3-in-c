@@ -59,11 +59,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(GNUInstallDirs)
 
-option(ETESCA_BUILD_APPS   "Build etesca"                  ${PROJECT_IS_TOP_LEVEL})
-option(ETESCA_BUILD_TESTS  "Build etesca tests"            ${PROJECT_IS_TOP_LEVEL})
-option(ETESCA_INSTALL      "Generate etesca install rules" ${PROJECT_IS_TOP_LEVEL})
-option(ETESCA_WERROR       "Treat warnings as errors"      OFF)
-
 set(ETESCA_LIBRARY_TYPE "" CACHE STRING
   "Library artifacts to build: STATIC, SHARED, STATIC+SHARED, NONE, or empty to follow BUILD_SHARED_LIBS")
 set_property(CACHE ETESCA_LIBRARY_TYPE PROPERTY STRINGS "" STATIC SHARED "STATIC+SHARED" NONE)
@@ -81,6 +76,11 @@ if(NOT ETESCA_LIBRARY_TYPE MATCHES "^(STATIC|SHARED|STATIC\\+SHARED|NONE)$")
   message(FATAL_ERROR
     "ETESCA_LIBRARY_TYPE must be STATIC, SHARED, STATIC+SHARED or NONE, not '${ETESCA_LIBRARY_TYPE}'")
 endif()
+
+option(ETESCA_BUILD_APPS   "Build etesca"                  ${PROJECT_IS_TOP_LEVEL})
+option(ETESCA_BUILD_TESTS  "Build etesca tests"            ${PROJECT_IS_TOP_LEVEL})
+option(ETESCA_INSTALL      "Generate etesca install rules" ${PROJECT_IS_TOP_LEVEL})
+option(ETESCA_WERROR       "Treat warnings as errors"      OFF)
 
 # Static Analysis (SA)
 option(ETESCA_SA_ALL        "Toggle static analysis tools"      OFF)
