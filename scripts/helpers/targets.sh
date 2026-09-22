@@ -146,21 +146,23 @@ etesca_target_configure() {
   ETESCA_PLATFORM_LABEL="$(etesca_target_desc "$name")"
   ETESCA_BUILD_PROFILE="${ETESCA_REPO_ROOT}/profiles/native"
   ETESCA_HOST_PROFILE=""
-  ETESCA_DEBUG_PRESET="native-debug"
-  ETESCA_RELEASE_PRESET="native-release"
+  ETESCA_PRESET_PREFIX="native"
+
   ETESCA_LIBRARY_TYPES="STATIC SHARED STATIC+SHARED"
   ETESCA_REQUIRED_TOOLS="conan cmake ctest ninja git"
-  ETESCA_STAGES="
+
+  ETESCA_SETUP_STAGES="
     environment
-    clean_slate
-    workflow_debug
-    workflow_release
+    clean_slate"
+  ETESCA_TYPE_STAGES="
+    workflow
     library_matrix
     auto_discovery
     install
     consumer
     cpack
-    host_tools
+    host_tools"
+  ETESCA_FINAL_STAGES="
     reset"
 
   case "$name" in
@@ -173,18 +175,14 @@ etesca_target_configure() {
     cross-*)
       local triple="${name#cross-}"
       ETESCA_HOST_PROFILE="${ETESCA_REPO_ROOT}/profiles/${triple}"
-      ETESCA_RELEASE_PRESET="${triple}-release"
+      ETESCA_PRESET_PREFIX="$triple"
       ETESCA_LIBRARY_TYPES="STATIC SHARED"
       ETESCA_REQUIRED_TOOLS="conan cmake ninja git"
-      # Nothing built here runs on this machine, and the cross profiles set
-      # tools.build:skip_test=True.
-      ETESCA_STAGES="
-        environment
-        clean_slate
+
+      ETESCA_TYPE_STAGES="
         host_tools_for_cross
         cross_build
-        library_matrix
-        reset"
+        library_matrix"
       ;;
 
     *)
