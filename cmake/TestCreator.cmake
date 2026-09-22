@@ -2,8 +2,15 @@ function(etesca_create_test)
   set(options
     NO_DEFAULT_LINKS
     NO_VALGRIND)
-  set(one_value_args NAME SOURCE_DIR LABEL)
-  set(multi_value_args SOURCES LINK_PRIVATE)
+
+  set(one_value_args
+    NAME
+    SOURCE_DIR
+    LABEL)
+
+  set(multi_value_args
+    SOURCES
+    LINK_PRIVATE)
 
   cmake_parse_arguments(ARG
     "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
@@ -81,8 +88,9 @@ function(etesca_create_test)
     target_compile_features(${etesca_test_target} PRIVATE
       cxx_std_${ETESCA_CXX_STANDARD})
 
-    etesca_link_target(${etesca_test_target}
+    etesca_link_targets(
       ${default_links}
+      TARGETS ${etesca_test_target}
       LINK_PRIVATE
         ${etesca_library}
         ${ARG_LINK_PRIVATE}

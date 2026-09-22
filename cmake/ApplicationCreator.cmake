@@ -20,7 +20,13 @@ function(etesca_create_app)
     DEFAULT_DIRS
     NO_DEFAULT_LINKS
     NO_INSTALL)
-  set(one_value_args NAME TARGET_NAME OUTPUT_NAME SOURCE_DIR)
+
+  set(one_value_args
+    NAME
+    TARGET_NAME
+    OUTPUT_NAME
+    SOURCE_DIR)
+
   set(multi_value_args
     SOURCES
     PRIVATE_HEADERS
@@ -92,8 +98,9 @@ function(etesca_create_app)
     set(default_links "")
   endif()
 
-  etesca_link_target(${ARG_TARGET_NAME}
+  etesca_link_targets(
     ${default_links}
+    TARGETS ${ARG_TARGET_NAME}
     LINK_PRIVATE ${ARG_LINK_PRIVATE}
     LINK_INTERFACE ${ARG_LINK_INTERFACE})
 

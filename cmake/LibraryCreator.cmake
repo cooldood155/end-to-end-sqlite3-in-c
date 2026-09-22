@@ -17,37 +17,43 @@ function(get_global_libraries OUTPUT_VAR)
   set(${OUTPUT_VAR} "${temp_list}" PARENT_SCOPE)
 endfunction()
 
-function(etesca_link_target target)
+function(etesca_link_targets)
   set(options NO_DEFAULT_LINKS)
-  set(multi_value_args LINK_PUBLIC LINK_PRIVATE LINK_INTERFACE)
+  set(multi_value_args
+    LINK_PUBLIC
+    LINK_PRIVATE
+    LINK_INTERFACE
+    TARGETS)
   cmake_parse_arguments(ARG
     "${options}" "" "${multi_value_args}" ${ARGN})
 
-  get_target_property(target_type ${target} TYPE)
+  foreach(t IN LISTS ARG_TARGETS)
+    get_target_property(target_type ${t} TYPE)
 
-  if(target_type STREQUAL "INTERFACE_LIBRARY")
-    set(pub INTERFACE)
-    set(priv INTERFACE)
-  else()
-    set(pub PUBLIC)
-    set(priv PRIVATE)
-  endif()
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+      set(pub INTERFACE)
+      set(priv INTERFACE)
+    else()
+      set(pub PUBLIC)
+      set(priv PRIVATE)
+    endif()
 
-  if(NOT ARG_NO_DEFAULT_LINKS)
-    target_link_libraries(${target} ${priv}
-      etesca::warnings
-      etesca::options)
-  endif()
+    if(NOT ARG_NO_DEFAULT_LINKS)
+      target_link_libraries(${t} ${priv}
+        etesca::warnings
+        etesca::options)
+    endif()
 
-  if(ARG_LINK_PUBLIC)
-    target_link_libraries(${target} ${pub} ${ARG_LINK_PUBLIC})
-  endif()
-  if(ARG_LINK_PRIVATE)
-    target_link_libraries(${target} ${priv} ${ARG_LINK_PRIVATE})
-  endif()
-  if(ARG_LINK_INTERFACE)
-    target_link_libraries(${target} INTERFACE ${ARG_LINK_INTERFACE})
-  endif()
+    if(ARG_LINK_PUBLIC)
+      target_link_libraries(${t} ${pub} ${ARG_LINK_PUBLIC})
+    endif()
+    if(ARG_LINK_PRIVATE)
+      target_link_libraries(${t} ${priv} ${ARG_LINK_PRIVATE})
+    endif()
+    if(ARG_LINK_INTERFACE)
+      target_link_libraries(${t} INTERFACE ${ARG_LINK_INTERFACE})
+    endif()
+  endforeach()
 endfunction()
 
 function(etesca_collect_components NAME)
@@ -180,87 +186,97 @@ function(etesca_add_library NAME)
   set(${NAME_UPPER}_EXPORT_HEADER_TARGET "${local_export_target}" PARENT_SCOPE)
 endfunction()
 
-function(etesca_configure_library target)
+function(etesca_configure_libraries)
   set(one_value_args BASE_NAME)
-  set(multi_value_args PUBLIC_HEADERS PRIVATE_HEADERS)
+  set(multi_value_args
+    PUBLIC_HEADERS
+    PRIVATE_HEADERS
+    TARGETS)
   cmake_parse_arguments(ARG
     "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-  if(NOT TARGET ${target})
-    message(FATAL_ERROR
-      "etesca_configure_library (func): '${target}' is not a target.")
-  endif()
   if(NOT ARG_BASE_NAME)
     message(FATAL_ERROR
-      "etesca_configure_library (func): no 'BASE_NAME' given for '${target}'.")
+      "etesca_configure_libraries (func): no 'BASE_NAME' given.")
+  endif()
+  if(NOT ARG_TARGETS)
+    message(FATAL_ERROR
+      "etesca_configure_libraries (func): no 'TARGETS' given.")
   endif()
 
   set(BASE_NAME "${ARG_BASE_NAME}")
   string(TOUPPER "${BASE_NAME}" BASE_NAME_UPPER)
 
-  get_target_property(target_type ${target} TYPE)
-
-  if(target_type STREQUAL "INTERFACE_LIBRARY")
-    set(pub INTERFACE)
-  else()
-    set(pub PUBLIC)
-  endif()
-
-  if(target MATCHES "_static$")
-    set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${BASE_NAME}-static")
-  elseif(target MATCHES "_shared$")
-    set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${BASE_NAME}-shared")
-  endif()
-
-  if(ARG_PUBLIC_HEADERS)
-    target_sources(${target}
-      ${pub}
-        FILE_SET    ${BASE_NAME}_headers
-        TYPE        HEADERS
-        BASE_DIRS   "${PROJECT_SOURCE_DIR}/include"
-        FILES       ${ARG_PUBLIC_HEADERS})
-  endif()
-
-  if(ARG_PRIVATE_HEADERS AND NOT target_type STREQUAL "INTERFACE_LIBRARY")
-    target_sources(${target}
-      PRIVATE
-        FILE_SET    ${BASE_NAME}_private_headers
-        TYPE        HEADERS
-        BASE_DIRS   "${PROJECT_SOURCE_DIR}/src"
-        FILES       ${ARG_PRIVATE_HEADERS})
-  endif()
-
-  if(EXISTS "${PROJECT_BINARY_DIR}/generated/${BASE_NAME}/export.hpp")
-    target_sources(${target}
-      ${pub}
-        FILE_SET    ${BASE_NAME}_generated_headers
-        TYPE        HEADERS
-        BASE_DIRS   "${PROJECT_BINARY_DIR}/generated"
-        FILES       "${PROJECT_BINARY_DIR}/generated/${BASE_NAME}/export.hpp")
-  endif()
-
-  target_compile_features(${target} ${pub}
-    cxx_std_${ETESCA_CXX_STANDARD})
-
-  if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
-    target_compile_definitions(${target} PRIVATE
-      ETESCA_VERSION_STRING="${PROJECT_VERSION}")
-
-    etesca_enable_static_analysis(${target})
-
-    set_target_properties(${target} PROPERTIES
-      VERSION "${PROJECT_VERSION}"
-      SOVERSION "${PROJECT_VERSION_MAJOR}"
-      CXX_VISIBILITY_PRESET hidden
-      VISIBILITY_INLINES_HIDDEN ON)
-
-    if(NOT target_type STREQUAL "SHARED_LIBRARY")
-      target_compile_definitions(${target} PUBLIC
-        ${BASE_NAME_UPPER}_STATIC_DEFINE)
+  foreach(target IN LISTS ARG_TARGETS)
+    if(NOT TARGET ${target})
+      message(FATAL_ERROR
+        "etesca_configure_libraries (func): '${target}' is not a target.")
     endif()
-  endif()
+
+    get_target_property(target_type ${target} TYPE)
+
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+      set(pub INTERFACE)
+    else()
+      set(pub PUBLIC)
+    endif()
+
+    if(target MATCHES "_static$")
+      set_target_properties(${target} PROPERTIES
+        OUTPUT_NAME "${BASE_NAME}-static")
+    elseif(target MATCHES "_shared$")
+      set_target_properties(${target} PROPERTIES
+        OUTPUT_NAME "${BASE_NAME}-shared")
+    endif()
+
+    if(ARG_PUBLIC_HEADERS)
+      target_sources(${target}
+        ${pub}
+          FILE_SET    ${BASE_NAME}_headers
+          TYPE        HEADERS
+          BASE_DIRS   "${PROJECT_SOURCE_DIR}/include"
+          FILES       ${ARG_PUBLIC_HEADERS})
+    endif()
+
+    if(ARG_PRIVATE_HEADERS AND NOT target_type STREQUAL "INTERFACE_LIBRARY")
+      target_sources(${target}
+        PRIVATE
+          FILE_SET    ${BASE_NAME}_private_headers
+          TYPE        HEADERS
+          BASE_DIRS   "${PROJECT_SOURCE_DIR}/src"
+          FILES       ${ARG_PRIVATE_HEADERS})
+    endif()
+
+    if(EXISTS "${PROJECT_BINARY_DIR}/generated/${BASE_NAME}/export.hpp")
+      target_sources(${target}
+        ${pub}
+          FILE_SET    ${BASE_NAME}_generated_headers
+          TYPE        HEADERS
+          BASE_DIRS   "${PROJECT_BINARY_DIR}/generated"
+          FILES       "${PROJECT_BINARY_DIR}/generated/${BASE_NAME}/export.hpp")
+    endif()
+
+    target_compile_features(${target} ${pub}
+      cxx_std_${ETESCA_CXX_STANDARD})
+
+    if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+      target_compile_definitions(${target} PRIVATE
+        ETESCA_VERSION_STRING="${PROJECT_VERSION}")
+
+      etesca_enable_static_analysis(${target})
+
+      set_target_properties(${target} PROPERTIES
+        VERSION "${PROJECT_VERSION}"
+        SOVERSION "${PROJECT_VERSION_MAJOR}"
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON)
+
+      if(NOT target_type STREQUAL "SHARED_LIBRARY")
+        target_compile_definitions(${target} PUBLIC
+          ${BASE_NAME_UPPER}_STATIC_DEFINE)
+      endif()
+    endif()
+  endforeach()
 endfunction()
 
 function(etesca_create_library)
@@ -484,18 +500,18 @@ function(etesca_create_library)
     set(default_links "")
   endif()
 
-  foreach(lib_target IN LISTS ${target_list_var})
-    etesca_configure_library(${lib_target}
-      BASE_NAME "${ARG_NAME}"
-      PUBLIC_HEADERS ${ARG_PUBLIC_HEADERS}
-      PRIVATE_HEADERS ${ARG_PRIVATE_HEADERS})
+  etesca_configure_libraries(
+    TARGETS ${${target_list_var}}
+    BASE_NAME "${ARG_NAME}"
+    PUBLIC_HEADERS ${ARG_PUBLIC_HEADERS}
+    PRIVATE_HEADERS ${ARG_PRIVATE_HEADERS})
 
-    etesca_link_target(${lib_target}
-      ${default_links}
-      LINK_PUBLIC ${ARG_LINK_PUBLIC}
-      LINK_PRIVATE ${ARG_LINK_PRIVATE}
-      LINK_INTERFACE ${ARG_LINK_INTERFACE})
-  endforeach()
+  etesca_link_targets(
+    ${default_links}
+    TARGETS ${${target_list_var}}
+    LINK_PUBLIC ${ARG_LINK_PUBLIC}
+    LINK_PRIVATE ${ARG_LINK_PRIVATE}
+    LINK_INTERFACE ${ARG_LINK_INTERFACE})
 
   append_global_libraries(TARGETS ${${target_list_var}})
 
