@@ -1,3 +1,5 @@
 etesca_create_library(
   NAME etesca
-  LOCKED_STATIC)
+  LOCKED_STATIC
+  REQUIRE_SOURCES
+  REQUIRE_PUBLIC_HEADERS)

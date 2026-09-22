@@ -268,9 +268,21 @@ function(etesca_create_library)
     LOCKED_STATIC
     LOCKED_SHARED
     LOCKED_STATIC_SHARED
+
+    REQUIRE_SOURCES
+    REQUIRE_PUBLIC_HEADERS
+    REQUIRE_PRIVATE_HEADERS
+
     NO_DEFAULT_LINKS
-    NO_INSTALL)
-  set(one_value_args NAME KIND SOURCE_DIR INCLUDE_DIR)
+    NO_INSTALL
+    VERBATIM)
+
+  set(one_value_args
+    NAME
+    KIND
+    SOURCE_DIR
+    INCLUDE_DIR)
+
   set(multi_value_args
     SOURCES
     PUBLIC_HEADERS
@@ -291,8 +303,13 @@ function(etesca_create_library)
       "'${ARG_NAME}': ${ARG_UNPARSED_ARGUMENTS}")
   endif()
 
-  if(NOT ARG_KIND)
+  if(NOT ARG_KIND AND NOT ARG_VERBATIM)
     set(ARG_KIND "AUTO")
+  elseif(NOT ARG_KIND)
+    message(FATAL_ERROR
+      "'etesca_create_library' (func): Requires a 'KIND' be set for the "
+      "libraries with the 'VERBATIM' option enabled. 'KIND' can be set to: "
+      "\"COMPILED\", \"HEADER_ONLY\", or \"INTERFACE\".")
   endif()
 
   set(flags_selected 0)
@@ -317,17 +334,76 @@ function(etesca_create_library)
     message(STATUS
       "etesca: library '${ARG_NAME}' linkage locked to ${linkage}")
   else()
+    if(ARG_VERBATIM)
+      message(FATAL_ERROR
+        "'etesca_create_library' (func): A linkage for the library must be "
+        "provided when the 'VERBATIM' option is enabled. The available "
+        "linkage options, only one can be set at a time, are: "
+        "'LOCKED_STATIC', 'LOCKED_SHARED', or 'LOCKED_STATIC_SHARED'.")
+    endif()
     set(linkage "${ETESCA_LIBRARY_TYPE}")
   endif()
 
-  if(NOT ARG_SOURCE_DIR)
-    set(ARG_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/${ARG_NAME}")
+  set(require_sources ${ARG_REQUIRE_SOURCES})
+  set(require_public_headers ${ARG_REQUIRE_PUBLIC_HEADERS})
+  set(require_private_headers ${ARG_REQUIRE_PRIVATE_HEADERS})
+
+  if(NOT require_sources AND ARG_SOURCES)
+    set(require_sources ON)
   endif()
-  if(NOT ARG_INCLUDE_DIR)
-    set(ARG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${ARG_NAME}")
+  if(NOT require_public_headers AND ARG_PUBLIC_HEADERS OR ARG_INCLUDE_DIR)
+    set(require_public_headers ON)
+  endif()
+  if(NOT require_private_headers AND ARG_PRIVATE_HEADERS)
+    set(require_private_headers ON)
   endif()
 
-  if(ARG_KIND STREQUAL "INTERFACE")
+  set(collect_component_options "")
+
+  if(NOT require_sources)
+    message(STATUS
+      "etesca: Sources are not required for library target '${ARG_NAME}'.")
+  else()
+    message(STATUS
+      "etesca: Sources are required for library target '${ARG_NAME}'.")
+    list(APPEND collect_component_options REQUIRE_SOURCES)
+  endif()
+
+  if(NOT require_public_headers)
+    message(STATUS
+      "etesca: Public headers are not required for library target '${ARG_NAME}'.")
+  else()
+    message(STATUS
+      "etesca: Public headers are required for library target '${ARG_NAME}'.")
+    list(APPEND collect_component_options REQUIRE_PUBLIC_HEADERS)
+  endif()
+
+  if(NOT require_private_headers)
+    message(STATUS
+      "etesca: Private headers are not required for library target '${ARG_NAME}'.")
+  else()
+    message(STATUS
+      "etesca: Private headers are required for library target '${ARG_NAME}'.")
+    list(APPEND collect_component_options REQUIRE_PRIVATE_HEADERS)
+  endif()
+
+  if(NOT ARG_SOURCE_DIR AND NOT ARG_VERBATIM)
+    set(ARG_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/${ARG_NAME}")
+  elseif(NOT ARG_SOURCE_DIR)
+    message(STATUS
+      "etesca: No source directory provided for library target '${ARG_NAME}'.")
+    set(ARG_SOURCE_DIR "")
+  endif()
+
+  if(NOT ARG_INCLUDE_DIR AND NOT ARG_VERBATIM)
+    set(ARG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${ARG_NAME}")
+  elseif(NOT ARG_INCLUDE_DIR)
+    message(STATUS
+      "etesca: No include directory provided for library target '${ARG_NAME}'.")
+    set(ARG_INCLUDE_DIR "")
+  endif()
+
+  if(ARG_KIND STREQUAL "INTERFACE" AND NOT ARG_VERBATIM)
     set(ARG_SOURCE_DIR "")
     set(ARG_INCLUDE_DIR "")
   endif()
@@ -337,11 +413,28 @@ function(etesca_create_library)
     INCLUDE_DIR "${ARG_INCLUDE_DIR}"
     OUT_SOURCES globbed_sources
     OUT_PUBLIC_HEADERS globbed_public_headers
-    OUT_PRIVATE_HEADERS globbed_private_headers)
+    OUT_PRIVATE_HEADERS globbed_private_headers
+    ${collect_component_options})
 
   list(APPEND ARG_SOURCES ${globbed_sources})
   list(APPEND ARG_PUBLIC_HEADERS ${globbed_public_headers})
   list(APPEND ARG_PRIVATE_HEADERS ${globbed_private_headers})
+
+  if(NOT ARG_SOURCES AND require_sources)
+    message(FATAL_ERROR
+      "'etesca_create_library' (func): Sources are required when the "
+      "'REQUIRE_SOURCES' option is provided, yet no 'SOURCES' were provided.")
+  elseif(NOT ARG_PUBLIC_HEADERS AND require_public_headers)
+    message(FATAL_ERROR
+      "'etesca_create_library' (func): Public headers are required when the "
+      "'REQUIRE_PUBLIC_HEADERS' option is provided, yet no 'PUBLIC_HEADERS' "
+      "were provided.")
+  elseif(NOT ARG_PRIVATE_HEADERS AND require_private_headers)
+    message(FATAL_ERROR
+      "'etesca_create_library' (func): Private headers are required when the "
+      "'REQUIRE_PRIVATE_HEADERS' option is provided, yet no 'PRIVATE_HEADERS' "
+      "were provided.")
+  endif()
 
   if(ARG_KIND STREQUAL "AUTO")
     if(ARG_SOURCES)
@@ -359,8 +452,7 @@ function(etesca_create_library)
       "etesca_create_library (func): '${ARG_NAME}' is 'KIND' COMPILED but no "
       "sources were found in '${ARG_SOURCE_DIR}' and none were given via "
       "'SOURCES'.")
-  endif()
-  if(ARG_KIND STREQUAL "HEADER_ONLY" AND NOT ARG_PUBLIC_HEADERS)
+  elseif(ARG_KIND STREQUAL "HEADER_ONLY" AND NOT ARG_PUBLIC_HEADERS)
     message(FATAL_ERROR
       "etesca_create_library (func): '${ARG_NAME}' is 'KIND' HEADER_ONLY but "
       "no public headers were found in '${ARG_INCLUDE_DIR}'.")
