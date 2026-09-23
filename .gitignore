@@ -76,6 +76,7 @@ $RECYCLE.BIN/
 # CMake
 build/
 build-*/
+cmake/projectkit/test_package/build/
 CMakeUserPresets.json
 
 # Ninja

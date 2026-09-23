@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 #
-# Registry of every target the central verify script, built ontop of
-# verify_base, knows how to verify. A case statement and not an associative
-# array because macOS still ships bash 3.2 and that is what I went with.
+# Registry of every target the ProjectKit verify script knows how to verify.
+# A case statement and not an associative array because macOS still ships bash
+# 3.2 and that is what I went with.
 #
 # Record fields: name|kind|os|arch|env|probe|description
 #   os     host OS family required: linux, macos, windows, any
@@ -19,7 +19,7 @@
 #   *possible* to run on the host machine and not what can, then pass the
 #   '--possible' flag.
 
-etesca_target_records() {
+pk_target_records() {
   printf '%s\n' \
     "linux-x86_64|native|linux|x86_64|-|-|Linux x86_64, native toolchain" \
     "linux-armv8|native|linux|armv8|-|-|Linux armv8, native toolchain" \
@@ -34,24 +34,24 @@ etesca_target_records() {
     "cross-aarch64-mingw-llvm-w64|cross|any|any|-|aarch64-w64-mingw32-clang|Cross to Windows armv8 via llvm-mingw"
 }
 
-etesca_host_platform() {
+pk_host_platform() {
   case "$(uname -s 2>/dev/null || echo unknown)" in
     Linux)                printf 'linux\n' ;;
     Darwin)               printf 'macos\n' ;;
     MINGW*|MSYS*|CYGWIN*) printf 'windows\n' ;;
-    *)                    printf 'unknown\n' ;;
+    *) printf 'unknown\n' ;;
   esac
 }
 
-etesca_host_arch() {
+pk_host_arch() {
   case "$(uname -m 2>/dev/null || echo unknown)" in
-    x86_64|amd64)          printf 'x86_64\n' ;;
-    aarch64|arm64|armv8*)  printf 'armv8\n' ;;
-    *)                     printf 'unknown\n' ;;
+    x86_64|amd64)         printf 'x86_64\n' ;;
+    aarch64|arm64|armv8*) printf 'armv8\n' ;;
+    *) printf 'unknown\n' ;;
   esac
 }
 
-etesca_target_field() {
+pk_target_field() {
   local name="$1" index="$2" record
   while IFS= read -r record; do
     case "$record" in
@@ -60,37 +60,37 @@ etesca_target_field() {
         return 0
         ;;
     esac
-  done < <(etesca_target_records)
+  done < <(pk_target_records)
   return 1
 }
 
-etesca_target_exists() { etesca_target_field "$1" 1 >/dev/null 2>&1; }
-etesca_target_kind()   { etesca_target_field "$1" 2; }
-etesca_target_desc()   { etesca_target_field "$1" 7; }
+pk_target_exists() { pk_target_field "$1" 1 >/dev/null 2>&1; }
+pk_target_kind()   { pk_target_field "$1" 2; }
+pk_target_desc()   { pk_target_field "$1" 7; }
 
 # Prints "yes" when the target can run here, otherwise "no" and a reason on the
 # second line. Never runs anything.
 #
-# Mode comes from ETESCA_SELECT_MODE, or the second argument:
+# Mode comes from PK_SELECT_MODE, or the second argument:
 #   strict    (default) every field must be satisfied
 #   possible  only os and arch are checked, so a target whose environment is
 #             not active or whose toolchain is not installed still counts
-etesca_target_availability() {
+pk_target_availability() {
   local name="$1"
-  local mode="${2:-${ETESCA_SELECT_MODE:-strict}}"
+  local mode="${2:-${PK_SELECT_MODE:-strict}}"
   local want_os want_arch want_env probe
-  want_os="$(etesca_target_field "$name" 3)"
-  want_arch="$(etesca_target_field "$name" 4)"
-  want_env="$(etesca_target_field "$name" 5)"
-  probe="$(etesca_target_field "$name" 6)"
+  want_os="$(pk_target_field "$name" 3)"
+  want_arch="$(pk_target_field "$name" 4)"
+  want_env="$(pk_target_field "$name" 5)"
+  probe="$(pk_target_field "$name" 6)"
 
-  if [[ "$want_os" != "any" && "$want_os" != "$(etesca_host_platform)" ]]; then
-    printf 'no\nneeds %s host, this is %s\n' "$want_os" "$(etesca_host_platform)"
+  if [[ "$want_os" != "any" && "$want_os" != "$(pk_host_platform)" ]]; then
+    printf 'no\nneeds %s host, this is %s\n' "$want_os" "$(pk_host_platform)"
     return 1
   fi
 
-  if [[ "$want_arch" != "any" && "$want_arch" != "$(etesca_host_arch)" ]]; then
-    printf 'no\nneeds %s host, this is %s\n' "$want_arch" "$(etesca_host_arch)"
+  if [[ "$want_arch" != "any" && "$want_arch" != "$(pk_host_arch)" ]]; then
+    printf 'no\nneeds %s host, this is %s\n' "$want_arch" "$(pk_host_arch)"
     return 1
   fi
 
@@ -117,9 +117,9 @@ etesca_target_availability() {
     return 1
   fi
 
-  if [[ "$(etesca_target_kind "$name")" == "cross" ]]; then
+  if [[ "$(pk_target_kind "$name")" == "cross" ]]; then
     local triple="${name#cross-}"
-    if [[ ! -f "${ETESCA_REPO_ROOT}/profiles/${triple}" ]]; then
+    if [[ ! -f "${PK_REPO_ROOT}/profiles/${triple}" ]]; then
       printf 'no\nno profiles/%s\n' "$triple"
       return 1
     fi
@@ -129,32 +129,33 @@ etesca_target_availability() {
   return 0
 }
 
-etesca_target_runnable_here() {
+pk_target_runnable_here() {
   local result
-  result="$(etesca_target_availability "$1" | head -n 1)"
+  result="$(pk_target_availability "$1" | head -n 1)"
   [[ "$result" == "yes" ]]
 }
 
 # Applies one target's configuration to the current shell. Callers run this in
 # a subshell so settings DON'T overwrite eachother / leak.
-etesca_target_configure() {
+pk_target_configure() {
   local name="$1"
 
   # A function body is not a closure: $name has to outlive this function.
-  ETESCA_TARGET_NAME="$name"
+  PK_TARGET_NAME="$name"
 
-  ETESCA_PLATFORM_LABEL="$(etesca_target_desc "$name")"
-  ETESCA_BUILD_PROFILE="${ETESCA_REPO_ROOT}/profiles/native"
-  ETESCA_HOST_PROFILE=""
-  ETESCA_PRESET_PREFIX="native"
+  PK_PLATFORM_LABEL="$(pk_target_desc "$name")"
+  PK_BUILD_PROFILE="${PK_REPO_ROOT}/profiles/native"
+  PK_HOST_PROFILE=""
+  PK_PRESET_PREFIX="native"
 
-  ETESCA_LIBRARY_TYPES="STATIC SHARED STATIC+SHARED"
-  ETESCA_REQUIRED_TOOLS="conan cmake ctest ninja git"
+  PK_LIBRARY_TYPES="STATIC SHARED STATIC+SHARED"
+  PK_REQUIRED_TOOLS="conan cmake ctest ninja git"
 
-  ETESCA_SETUP_STAGES="
+  # Setup and final stages run once. Type stages run once per build type.
+  PK_SETUP_STAGES="
     environment
     clean_slate"
-  ETESCA_TYPE_STAGES="
+  PK_TYPE_STAGES="
     workflow
     library_matrix
     auto_discovery
@@ -162,7 +163,7 @@ etesca_target_configure() {
     consumer
     cpack
     host_tools"
-  ETESCA_FINAL_STAGES="
+  PK_FINAL_STAGES="
     reset"
 
   case "$name" in
@@ -174,12 +175,12 @@ etesca_target_configure() {
 
     cross-*)
       local triple="${name#cross-}"
-      ETESCA_HOST_PROFILE="${ETESCA_REPO_ROOT}/profiles/${triple}"
-      ETESCA_PRESET_PREFIX="$triple"
-      ETESCA_LIBRARY_TYPES="STATIC SHARED"
-      ETESCA_REQUIRED_TOOLS="conan cmake ninja git"
+      PK_HOST_PROFILE="${PK_REPO_ROOT}/profiles/${triple}"
+      PK_PRESET_PREFIX="$triple"
+      PK_LIBRARY_TYPES="STATIC SHARED"
+      PK_REQUIRED_TOOLS="conan cmake ninja git"
 
-      ETESCA_TYPE_STAGES="
+      PK_TYPE_STAGES="
         host_tools_for_cross
         cross_build
         library_matrix"
@@ -192,17 +193,17 @@ etesca_target_configure() {
   esac
 
   # !! Always strict !!
-  etesca_platform_check() {
+  pk_platform_check() {
     local verdict reason
-    verdict="$(etesca_target_availability "$ETESCA_TARGET_NAME" strict | sed -n '1p')"
-    reason="$(etesca_target_availability "$ETESCA_TARGET_NAME" strict | sed -n '2p')"
+    verdict="$(pk_target_availability "$PK_TARGET_NAME" strict | sed -n '1p')"
+    reason="$(pk_target_availability "$PK_TARGET_NAME" strict | sed -n '2p')"
 
     if [[ "$verdict" == "yes" ]]; then
-      etesca_pass "target ${ETESCA_TARGET_NAME} is available here"
+      pk_pass "target ${PK_TARGET_NAME} is available here"
       return 0
     fi
 
-    etesca_fail "target ${ETESCA_TARGET_NAME} not available: ${reason}"
+    pk_fail "target ${PK_TARGET_NAME} not available: ${reason}"
     return 1
   }
 }

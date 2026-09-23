@@ -1,4 +1,4 @@
-etesca_create_library(
+pk_create_library(
   NAME etesca
   LOCKED_STATIC
   REQUIRE_SOURCES
