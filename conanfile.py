@@ -70,6 +70,9 @@ class EtescaRecipe(ConanFile):
       "set(ETESCA_TOOLCHAIN_SHARED {})\n".format(
         "ON" if self.options.get_safe("shared") else "OFF"))
 
+  def requirements(self):
+    self.requires("sqlite3/3.53.4")
+
   def build_requirements(self):
     self.test_requires("catch2/[>=3.7.1]")
     self.tool_requires("cmake/[>=3.30]")

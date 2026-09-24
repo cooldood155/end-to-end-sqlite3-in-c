@@ -24,6 +24,8 @@ pk_project_setup(CXX_STANDARD 23 C_STANDARD 23)
 pk_check_shared_intent()
 pk_require_host_tools()
 
+find_package(SQLite3 REQUIRED)
+
 if(NOT CMAKE_CROSSCOMPILING)
   add_subdirectory(tools)
 endif()

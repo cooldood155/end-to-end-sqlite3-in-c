@@ -123,6 +123,8 @@ GitHub repository tag it belongs to.
 
 ### Changed
 
+- Changed the `etesca` library to depend on SQLite3. `find_package(etesca)`
+  now also finds `SQLite3`, which must be available to consumers.
 - Changed configuration to require a `CMAKE_BUILD_TYPE` with matching Conan
   output. Configuring without a build type, with an unknown build type, before
   `conan install` has run for that build type, or with Conan output generated
