@@ -124,17 +124,15 @@ if [[ "$FORCE" -eq 0 && "$DRY_RUN" -eq 0 ]] && git rev-parse --git-dir >/dev/nul
   fi
 fi
 
-PRUNE=(
-  -name .git -o
-  -name build -o
-  -name stage -o
-  -name _install -o
-  -name projectkit -o
-  -name .conan-cache
-)
-
 pk_paths_to_rename() {
-  find . \( "${PRUNE[@]}" \) -prune -o -depth -name "*${OLD_NAME}*" -print
+  find . -depth -name "*${OLD_NAME}*" \
+    ! -path "./.git/*" \
+    ! -path "*/projectkit/*" \
+    ! -path "*/build/*" \
+    ! -path "*/stage/*" \
+    ! -path "*/_install/*" \
+    ! -path "*/.conan-cache/*" \
+    -print
 }
 
 pk_files_to_edit() {
@@ -182,6 +180,7 @@ for path in "${RENAMES[@]}"; do
 done
 
 if [[ "${#EDITS[@]}" -gt 0 ]]; then
+  # Re-resolve, since the rename step moved some of these files.
   mapfile -t EDITS < <(pk_files_to_edit)
   printf '%s\n' "${EDITS[@]}" | while IFS= read -r file; do
     [[ -f "$file" ]] || continue
@@ -222,7 +221,9 @@ else
     "$PK_GREEN" "$OLD_NAME" "$PK_RESET"
 fi
 
-kit_hits="$(grep -rIl -i "$OLD_NAME" cmake/projectkit 2>/dev/null)"
+kit_hits="$(grep -rIl -i "$OLD_NAME" cmake/projectkit \
+  --include='*.cmake' --include='*.in' --include='*.sh' --include='*.py' \
+  --exclude-dir=build 2>/dev/null)"
 if [[ -n "$kit_hits" ]]; then
   pk_warn "the kit mentions '${OLD_NAME}', which is a bug in the kit:"
   printf '  %s\n' $kit_hits
