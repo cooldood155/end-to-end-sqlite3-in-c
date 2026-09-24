@@ -118,6 +118,8 @@ GitHub repository tag it belongs to.
 - Added `COMPONENTS` support to the installed package config. Each requested
   component is reported as found when the matching `etesca::<component>`
   target is exported. ([#4])
+- Added native and cross build instructions to `docs/BUILDING.md`, including
+  which build machines and targets are verified in CI. ([#6])
 
 ### Changed
 
@@ -130,12 +132,21 @@ GitHub repository tag it belongs to.
   `ETESCA_LIBRARY_TYPE` and `BUILD_SHARED_LIBS` no longer change its linkage
   and the `etesca::static` and `etesca::shared` targets are no longer exported.
   ([#4])
-- Changed `ETESCA_CXX_STANDARD` and `ETESCA_C_STANDARD` to corrospond to
+- Changed `ETESCA_CXX_STANDARD` and `ETESCA_C_STANDARD` to defer to
   `CMAKE_CXX_STANDARD` and `CMAKE_C_STANDARD` when those are already set, just
-  like the Conan toolchain. The `native` profile now sets `compiler.cppstd=26`;
-  native builds compile as C++26 instead of C++23. ([#4])
+  as the Conan toolchain does. ([#4])
+- Changed the Conan profiles to read `compiler.version` from the installed
+  compiler on every run instead of using a fixed or previously detected value.
+  A toolchain upgrade can no longer produce mislabelled binaries. Inside MSYS2
+  the `native` profile now selects GCC or Clang from the active environment.
+  ([#4])
+- Changed the `native` Conan profile to request C23, raising the minimum native
+  compiler to GCC 14 or Clang 18. MSVC can no longer use the `native` profile,
+  because Conan doesn't accept C23 mode for MSVC. ([#4])
+- Changed the `aarch64-mingw-llvm-w64` target to require llvm-mingw built on
+  LLVM 22 (release 20260616, LLVM 22.1.8). ([#4])
 - Changed the `native` Conan profile to set `tools.build:skip_test=False`, so
-  tests are built even when your custom profile disables them. ([#4])
+  tests are built even when your default profile disables them. ([#4])
 - Changed the `x86_64-mingw-w64` profile to stop passing `-mucrt`. Cross-built
   Windows binaries now use the toolchain's default C runtime, which is
   `msvcrt.dll` unless the MinGW-w64 toolchain is itself a UCRT build. ([#4])
@@ -173,3 +184,4 @@ GitHub repository tag it belongs to.
   misspelled codegen target name. ([#4])
 
 [#4]: https://github.com/cooldood155/end-to-end-sqlite3-in-c/pull/4
+[#6]: https://github.com/cooldood155/end-to-end-sqlite3-in-c/issues/6
