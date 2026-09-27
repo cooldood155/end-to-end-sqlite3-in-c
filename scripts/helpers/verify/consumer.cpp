@@ -1,7 +1,12 @@
 #include <etesca/core.hpp>
-#include <print>
+
+#include <cstdio>
 
 int main() {
-    std::println("%s", etesca::version());
+    const char* const version = etesca::version();
+    if (version == nullptr) {
+        return 1;
+    }
+    std::puts(version);
     return 0;
 }
