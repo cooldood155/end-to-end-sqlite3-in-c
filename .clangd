@@ -1,6 +1,7 @@
 CompileFlags:
-  CompilationDatabase: build/native-release
+  CompilationDatabase: .
   Remove:
     - -fmodules-ts
     - -fmodule-mapper=*
     - -fdeps-*
+    - -fno-keep-inline-dllexport

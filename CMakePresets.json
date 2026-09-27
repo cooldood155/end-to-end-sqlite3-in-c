@@ -55,7 +55,8 @@
         "ETESCA_BUILD_APPS": "OFF",
         "ETESCA_BUILD_TESTS": "OFF",
         "ETESCA_LIBRARY_TYPE": "NONE",
-        "ETESCA_SA_ALL": "OFF"
+        "ETESCA_SA_ALL": "OFF",
+        "PK_LINK_COMPILE_COMMANDS": { "type": "BOOL", "value": "OFF" }
       }
     },
 

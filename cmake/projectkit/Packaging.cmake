@@ -190,8 +190,13 @@ function(pk_install_package)
   endif()
 endfunction()
 
+option(PK_LINK_COMPILE_COMMANDS
+  "Link this build's compile_commands.json into the source root" ON)
+
 function(pk_link_compile_commands)
-  if(NOT PROJECT_IS_TOP_LEVEL OR NOT CMAKE_EXPORT_COMPILE_COMMANDS)
+  if(NOT PROJECT_IS_TOP_LEVEL
+     OR NOT CMAKE_EXPORT_COMPILE_COMMANDS
+     OR NOT PK_LINK_COMPILE_COMMANDS)
     return()
   endif()
 
