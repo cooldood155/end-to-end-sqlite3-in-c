@@ -10,7 +10,10 @@ extern "C" {
 #endif
 
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
-    const std::string input(reinterpret_cast<const char*>(data), size);
+    const std::string input(
+        reinterpret_cast<const char*>(data), /* NOLINT(
+            cppcoreguidelines-pro-type-reinterpret-cast
+        ): char may alias uint8_t*/ size);
 
     const char* const version = etesca::version();
 

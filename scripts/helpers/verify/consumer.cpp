@@ -1,7 +1,7 @@
 #include <etesca/core.hpp>
-#include <cstdio>
+#include <print>
 
 int main() {
-    std::printf("%s\n", etesca::version());
+    std::println("%s", etesca::version());
     return 0;
 }
