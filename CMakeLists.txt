@@ -14,7 +14,7 @@ set(CONAN_BUILD_DIR "${etesca_conan_dir}" CACHE INTERNAL
   "Conan's binary output path for the current configuration / build type.")
 
 project(etesca
-  VERSION     0.0.0
+  VERSION     0.1.0
   DESCRIPTION "C/C++ CLI, written in C, for managing SQLite3 databases (average CRUD actions and possibly extra features)"
   LANGUAGES   C CXX)
 

@@ -100,6 +100,8 @@ GitHub repository tag it belongs to.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-28
+
 ### Added
 
 - Added cross-compilation configure, build and workflow presets for
