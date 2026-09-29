@@ -20,7 +20,7 @@ Checks: >
   -readability-magic-numbers
 
 WarningsAsErrors: ''
-HeaderFilterRegex: '(^|/)(include/etesca|src)/.*\.hpp$'
+HeaderFilterRegex: '(^|/)(include/etesca|src)/.*\.(h|hpp)$'
 FormatStyle: none
 
 ...
